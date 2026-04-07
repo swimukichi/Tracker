@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>症状記録</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d1117;
+      color: #e2e8f0;
+      font-family: 'Hiragino Kaku Gothic ProN', 'BIZ UDGothic', 'Noto Sans JP', sans-serif;
+      min-height: 100vh;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Header */
+    #header {
+      background: linear-gradient(135deg, #1a1f2e 0%, #0d1117 100%);
+      border-bottom: 1px solid #1e293b;
+      padding: 20px 16px 14px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .header-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: #64748b;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #app-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #f1f5f9;
+      letter-spacing: -0.5px;
+    }
+
+    #edit-title-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      padding: 2px 4px;
+      color: #475569;
+      line-height: 1;
+    }
+
+    #title-edit-area {
+      display: none;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #title-input {
+      background: #0d1117;
+      border: 1px solid #3b82f6;
+      border-radius: 8px;
+      padding: 4px 10px;
+      color: #f1f5f9;
+      font-size: 18px;
+      font-weight: 700;
+      font-family: inherit;
+      width: 150px;
+      outline: none;
+    }
+
+    .btn-save-title {
+      background: #3b82f6;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 11px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+    }
+
+    .btn-cancel-title {
+      background: none;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #64748b;
+      font-size: 11px;
+      padding: 5px 8px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .header-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .count-badge {
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 6px 14px;
+      font-size: 12px;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+
+    .count-badge span {
+      color: #f87171;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    #add-btn {
+      background: linear-gradient(135deg, #dc2626, #9f1239);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 1px;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      color: #64748b;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 5px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .tab-btn.active {
+      background: #1e3a5f;
+      color: #93c5fd;
+      border-color: #1e40af;
+    }
+
+    /* Main content */
+    #main {
+      padding: 16px 16px 100px;
+    }
+
+    /* Month group */
+    .month-group {
+      margin-bottom: 12px;
+      background: #131921;
+      border-radius: 14px;
+      border: 1px solid #1e293b;
+      overflow: hidden;
+    }
+
+    .month-header {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 14px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #e2e8f0;
+      font-family: inherit;
+    }
+
+    .month-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .month-name {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .month-count {
+      background: #7f1d1d;
+      color: #fca5a5;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .month-stats {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 10px;
+    }
+
+    .stat-morning { color: #93c5fd; }
+    .stat-night { color: #94a3b8; }
+    .stat-bath { color: #fdba74; }
+    .month-arrow { color: #475569; font-size: 12px; }
+
+    .month-body {
+      border-top: 1px solid #1e293b;
+    }
+
+    .month-body.hidden { display: none; }
+
+    /* Episode row */
+    .episode-row {
+      border-bottom: 1px solid #1a2030;
+    }
+
+    .episode-row:last-child {
+      border-bottom: none;
+    }
+
+    .episode-summary {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 12px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #e2e8f0;
+      font-family: inherit;
+      text-align: left;
+    }
+
+    .zone-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .ep-info { flex: 1; min-width: 0; }
+
+    .ep-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ep-date { font-size: 13px; font-weight: 700; color: #cbd5e1; }
+    .ep-time { font-size: 12px; color: #64748b; }
+
+    .sev-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .ep-sub {
+      font-size: 11px;
+      color: #475569;
+      margin-top: 2px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .ep-arrow { color: #334155; font-size: 12px; }
+
+    /* Episode detail */
+    .episode-detail {
+      padding: 0 16px 14px 64px;
+      font-size: 12px;
+      color: #94a3b8;
+      display: none;
+    }
+
+    .episode-detail.open { display: block; }
+
+    .detail-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .detail-label { color: #475569; min-width: 64px; }
+    .detail-value { color: #cbd5e1; }
+
+    .detail-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn-edit-ep {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: transparent;
+      color: #93c5fd;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-delete-ep {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid #7f1d1d;
+      background: transparent;
+      color: #f87171;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* Form */
+    #form-view {
+      display: none;
+      background: #131921;
+      border-radius: 16px;
+      border: 1px solid #1e293b;
+      padding: 20px;
+    }
+
+    #form-view.open { display: block; }
+
+    .form-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #f1f5f9;
+    }
+
+    .form-field { margin-bottom: 16px; }
+
+    .form-label {
+      font-size: 11px;
+      color: #64748b;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+      display: block;
+    }
+
+    .form-input {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: #e2e8f0;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    textarea.form-input {
+      height: 80px;
+      resize: vertical;
+    }
+
+    .severity-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .sev-btn {
+      flex: 1;
+      padding: 8px 4px;
+      border-radius: 8px;
+      border: 1px solid #1e293b;
+      background: #1a2030;
+      color: #64748b;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 400;
+    }
+
+    .sev-btn.active {
+      font-weight: 700;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .btn-cancel {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: transparent;
+      color: #94a3b8;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    .btn-submit {
+      flex: 2;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #dc2626, #9f1239);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+
+    /* Confirm dialog override */
+    #confirm-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #confirm-overlay.open {
+      display: flex;
+    }
+
+    #confirm-box {
+      background: #1a2030;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 24px 20px;
+      width: 280px;
+      text-align: center;
+    }
+
+    #confirm-box p {
+      font-size: 14px;
+      color: #cbd5e1;
+      margin-bottom: 20px;
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-confirm-cancel {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: transparent;
+      color: #94a3b8;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+    }
+
+    .btn-confirm-ok {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      background: #dc2626;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div id="header">
+  <div class="header-top">
+    <div>
+      <div class="header-label">Health Log</div>
+      <div class="title-row" id="title-display">
+        <span id="app-title">貧血記録</span>
+        <button id="edit-title-btn" onclick="startEditTitle()">✏️</button>
+      </div>
+      <div class="title-row" id="title-edit-area">
+        <input id="title-input" type="text" maxlength="20">
+        <button class="btn-save-title" onclick="saveTitle()">保存</button>
+        <button class="btn-cancel-title" onclick="cancelEditTitle()">✕</button>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="count-badge">計 <span id="total-count">0</span> 件</div>
+      <button id="add-btn" onclick="openForm()">＋ 記録</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-monthly" onclick="switchTab('monthly')">月別</button>
+    <button class="tab-btn" id="tab-list" onclick="switchTab('list')">一覧</button>
+  </div>
+</div>
+
+<!-- Main -->
+<div id="main">
+  <div id="monthly-view"></div>
+  <div id="list-view" style="display:none"></div>
+  <div id="form-view">
+    <div class="form-title" id="form-title">＋ 新規記録</div>
+    <input type="hidden" id="edit-id">
+
+    <div class="form-field">
+      <label class="form-label">日付</label>
+      <input class="form-input" type="date" id="f-date">
+    </div>
+    <div class="form-field">
+      <label class="form-label">時刻</label>
+      <input class="form-input" type="time" id="f-time">
+    </div>
+    <div class="form-field">
+      <label class="form-label">発生場所</label>
+      <input class="form-input" type="text" id="f-location" placeholder="例：風呂場、職場、電車内...">
+    </div>
+    <div class="form-field">
+      <label class="form-label">きっかけ・状況</label>
+      <input class="form-input" type="text" id="f-trigger" placeholder="例：起立時、食後、暑い環境...">
+    </div>
+    <div class="form-field">
+      <label class="form-label">症状の強さ</label>
+      <div class="severity-btns" id="sev-btns"></div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">メモ・詳細</label>
+      <textarea class="form-input" id="f-notes" placeholder="症状の詳細、服薬状況、その後の対処など..."></textarea>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeForm()">キャンセル</button>
+      <button class="btn-submit" id="form-submit-btn" onclick="submitForm()">記録する</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm dialog -->
+<div id="confirm-overlay">
+  <div id="confirm-box">
+    <p>この記録を削除しますか？</p>
+    <div class="confirm-actions">
+      <button class="btn-confirm-cancel" onclick="closeConfirm()">キャンセル</button>
+      <button class="btn-confirm-ok" onclick="doDelete()">削除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────
+const SEVERITY_LABELS = ["軽微", "中程度", "重め", "かなり重い"];
+const SEVERITY_COLORS = ["#4ade80", "#facc15", "#fb923c", "#f87171"];
+const ZONE_COLORS = {
+  "午前": "#93c5fd", "午後": "#c4b5fd",
+  "夕方": "#fdba74", "夜間": "#94a3b8", "不明": "#475569"
+};
+
+const INITIAL_DATA = [
+  { id: "1",  date: "2026-01-08", time: "22:00", location: "風呂場",       trigger: "", notes: "", severity: 2 },
+  { id: "2",  date: "2026-01-09", time: "12:10", location: "帰宅途中",     trigger: "", notes: "", severity: 2 },
+  { id: "3",  date: "2026-01-10", time: "14:51", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "4",  date: "2026-01-11", time: "10:09", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "5",  date: "2026-01-12", time: "10:15", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "6",  date: "2026-01-13", time: "13:37", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "7",  date: "2026-01-17", time: "11:56", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "8",  date: "2026-01-18", time: "",      location: "風呂場",       trigger: "", notes: "", severity: 2 },
+  { id: "9",  date: "2026-01-19", time: "11:04", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "10", date: "2026-01-19", time: "15:43", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "11", date: "2026-01-22", time: "22:28", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "12", date: "2026-01-24", time: "15:08", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "13", date: "2026-01-24", time: "20:17", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "14", date: "2026-01-25", time: "22:00", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "15", date: "2026-01-26", time: "10:18", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "16", date: "2026-01-30", time: "13:04", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "17", date: "2026-02-05", time: "22:36", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "18", date: "2026-02-08", time: "21:24", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "19", date: "2026-02-11", time: "10:01", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "20", date: "2026-02-21", time: "10:48", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "21", date: "2026-03-09", time: "11:12", location: "",             trigger: "", notes: "", severity: 2 },
+  { id: "22", date: "2026-04-06", time: "11:00", location: "車中",         trigger: "", notes: "", severity: 2 },
+  { id: "23", date: "2026-04-06", time: "21:00", location: "風呂場",       trigger: "", notes: "", severity: 2 },
+  { id: "24", date: "2026-04-07", time: "11:10", location: "病院（問診中）", trigger: "", notes: "", severity: 2 },
+];
+
+// ── State ──────────────────────────────────────────────────
+let episodes = [];
+let appTitle = "貧血記録";
+let currentTab = "monthly";
+let expandedMonths = {};
+let pendingDeleteId = null;
+let currentSeverity = 1;
+
+// ── Init ───────────────────────────────────────────────────
+function init() {
+  try {
+    const saved = localStorage.getItem("tracker_episodes");
+    episodes = saved ? JSON.parse(saved) : INITIAL_DATA;
+  } catch { episodes = [...INITIAL_DATA]; }
+
+  try {
+    appTitle = localStorage.getItem("tracker_title") || "貧血記録";
+  } catch {}
+
+  document.getElementById("app-title").textContent = appTitle;
+  document.title = appTitle;
+  renderSeverityBtns();
+  setTodayDefaults();
+  render();
+}
+
+function save() {
+  try { localStorage.setItem("tracker_episodes", JSON.stringify(episodes)); } catch {}
+}
+
+function saveTitle() {
+  try { localStorage.setItem("tracker_title", appTitle); } catch {}
+}
+
+// ── Helpers ────────────────────────────────────────────────
+function timeHour(time) {
+  if (!time) return null;
+  return parseInt(time.split(":")[0]);
+}
+
+function getTimeZone(hour) {
+  if (hour === null) return "不明";
+  if (hour >= 5 && hour < 12) return "午前";
+  if (hour >= 12 && hour < 17) return "午後";
+  if (hour >= 17 && hour < 21) return "夕方";
+  return "夜間";
+}
+
+function groupByMonth(eps) {
+  const groups = {};
+  eps.forEach(ep => {
+    const key = ep.date.slice(0, 7);
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(ep);
+  });
+  return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
+}
+
+function fmtMonth(key) {
+  const [y, m] = key.split("-");
+  return `${y}年${parseInt(m)}月`;
+}
+
+function esc(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// ── Render ─────────────────────────────────────────────────
+function render() {
+  document.getElementById("total-count").textContent = episodes.length;
+  if (currentTab === "monthly") renderMonthly();
+  else renderList();
+}
+
+function renderMonthly() {
+  const grouped = groupByMonth(episodes);
+  let html = "";
+  grouped.forEach(([month, eps]) => {
+    const isOpen = expandedMonths[month] !== false;
+    const morning = eps.filter(e => { const h = timeHour(e.time); return h !== null && h >= 5 && h < 12; }).length;
+    const night = eps.filter(e => { const h = timeHour(e.time); return h !== null && (h >= 21 || h < 5); }).length;
+    const bath = eps.filter(e => e.location.includes("風呂")).length;
+
+    html += `
+      <div class="month-group">
+        <button class="month-header" onclick="toggleMonth('${month}')">
+          <div class="month-left">
+            <span class="month-name">${fmtMonth(month)}</span>
+            <span class="month-count">${eps.length}件</span>
+          </div>
+          <div class="month-stats">
+            ${morning > 0 ? `<span class="stat-morning">午前${morning}</span>` : ""}
+            ${night > 0 ? `<span class="stat-night">夜${night}</span>` : ""}
+            ${bath > 0 ? `<span class="stat-bath">風呂${bath}</span>` : ""}
+            <span class="month-arrow">${isOpen ? "▲" : "▼"}</span>
+          </div>
+        </button>
+        <div class="month-body ${isOpen ? "" : "hidden"}" id="mb-${month}">
+          ${eps.map((ep, i) => episodeRowHTML(ep, i === eps.length - 1)).join("")}
+        </div>
+      </div>`;
+  });
+  document.getElementById("monthly-view").innerHTML = html;
+}
+
+function renderList() {
+  const reversed = [...episodes].reverse();
+  document.getElementById("list-view").innerHTML =
+    reversed.map((ep, i) => episodeRowHTML(ep, i === reversed.length - 1)).join("");
+}
+
+function episodeRowHTML(ep, isLast) {
+  const hour = timeHour(ep.time);
+  const zone = getTimeZone(hour);
+  const zc = ZONE_COLORS[zone];
+  const sc = SEVERITY_COLORS[ep.severity] || "#facc15";
+  const sub = esc(ep.location || ep.trigger || ep.notes || "詳細なし");
+
+  return `
+    <div class="episode-row" ${isLast ? 'style="border-bottom:none"' : ""}>
+      <button class="episode-summary" onclick="toggleEp('${ep.id}')">
+        <div class="zone-badge" style="background:${zc}18;border:1px solid ${zc}44;color:${zc}">${zone}</div>
+        <div class="ep-info">
+          <div class="ep-header">
+            <span class="ep-date">${ep.date.slice(5).replace("-", "/")}</span>
+            ${ep.time ? `<span class="ep-time">${ep.time}</span>` : ""}
+            <span class="sev-dot" style="background:${sc}"></span>
+          </div>
+          <div class="ep-sub">${sub}</div>
+        </div>
+        <span class="ep-arrow" id="arr-${ep.id}">▼</span>
+      </button>
+      <div class="episode-detail" id="det-${ep.id}">
+        ${ep.location ? `<div class="detail-row"><span class="detail-label">場所</span><span class="detail-value">${esc(ep.location)}</span></div>` : ""}
+        ${ep.trigger ? `<div class="detail-row"><span class="detail-label">きっかけ</span><span class="detail-value">${esc(ep.trigger)}</span></div>` : ""}
+        ${ep.notes ? `<div class="detail-row"><span class="detail-label">メモ</span><span class="detail-value">${esc(ep.notes)}</span></div>` : ""}
+        <div class="detail-row">
+          <span class="detail-label">症状の強さ</span>
+          <span class="detail-value" style="color:${sc}">${SEVERITY_LABELS[ep.severity]}</span>
+        </div>
+        <div class="detail-actions">
+          <button class="btn-edit-ep" onclick="openEditForm('${ep.id}')">編集</button>
+          <button class="btn-delete-ep" onclick="confirmDelete('${ep.id}')">削除</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── Interactions ───────────────────────────────────────────
+function toggleMonth(key) {
+  expandedMonths[key] = expandedMonths[key] === false ? true : false;
+  const body = document.getElementById("mb-" + key);
+  if (body) body.classList.toggle("hidden");
+  const btn = body ? body.previousElementSibling : null;
+  if (btn) {
+    const arrow = btn.querySelector(".month-arrow");
+    if (arrow) arrow.textContent = body.classList.contains("hidden") ? "▼" : "▲";
+  }
+}
+
+function toggleEp(id) {
+  const det = document.getElementById("det-" + id);
+  const arr = document.getElementById("arr-" + id);
+  if (!det) return;
+  const isOpen = det.classList.toggle("open");
+  if (arr) arr.textContent = isOpen ? "▲" : "▼";
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById("tab-monthly").classList.toggle("active", tab === "monthly");
+  document.getElementById("tab-list").classList.toggle("active", tab === "list");
+  document.getElementById("monthly-view").style.display = tab === "monthly" ? "" : "none";
+  document.getElementById("list-view").style.display = tab === "list" ? "" : "none";
+  document.getElementById("form-view").classList.remove("open");
+  render();
+}
+
+// ── Title editing ──────────────────────────────────────────
+function startEditTitle() {
+  document.getElementById("title-input").value = appTitle;
+  document.getElementById("title-display").style.display = "none";
+  const ea = document.getElementById("title-edit-area");
+  ea.style.display = "flex";
+  document.getElementById("title-input").focus();
+}
+
+function saveTitle() {
+  const val = document.getElementById("title-input").value.trim();
+  if (val) {
+    appTitle = val;
+    document.getElementById("app-title").textContent = appTitle;
+    document.title = appTitle;
+    try { localStorage.setItem("tracker_title", appTitle); } catch {}
+  }
+  cancelEditTitle();
+}
+
+function cancelEditTitle() {
+  document.getElementById("title-display").style.display = "flex";
+  document.getElementById("title-edit-area").style.display = "none";
+}
+
+document.getElementById("title-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") saveTitle();
+  if (e.key === "Escape") cancelEditTitle();
+});
+
+// ── Severity buttons ───────────────────────────────────────
+function renderSeverityBtns() {
+  const container = document.getElementById("sev-btns");
+  container.innerHTML = SEVERITY_LABELS.map((label, i) => `
+    <button class="sev-btn ${i === currentSeverity ? "active" : ""}"
+      id="sev-${i}"
+      style="${i === currentSeverity ? `border:2px solid ${SEVERITY_COLORS[i]};background:${SEVERITY_COLORS[i]}22;color:${SEVERITY_COLORS[i]}` : ""}"
+      onclick="selectSeverity(${i})">${label}</button>
+  `).join("");
+}
+
+function selectSeverity(idx) {
+  currentSeverity = idx;
+  SEVERITY_LABELS.forEach((_, i) => {
+    const btn = document.getElementById("sev-" + i);
+    if (!btn) return;
+    if (i === idx) {
+      btn.classList.add("active");
+      btn.style.border = `2px solid ${SEVERITY_COLORS[i]}`;
+      btn.style.background = `${SEVERITY_COLORS[i]}22`;
+      btn.style.color = SEVERITY_COLORS[i];
+      btn.style.fontWeight = "700";
+    } else {
+      btn.classList.remove("active");
+      btn.style.border = "1px solid #1e293b";
+      btn.style.background = "#1a2030";
+      btn.style.color = "#64748b";
+      btn.style.fontWeight = "400";
+    }
+  });
+}
+
+// ── Form ───────────────────────────────────────────────────
+function setTodayDefaults() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2, "0");
+  document.getElementById("f-date").value =
+    `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  document.getElementById("f-time").value =
+    `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+}
+
+function openForm() {
+  document.getElementById("edit-id").value = "";
+  document.getElementById("form-title").textContent = "＋ 新規記録";
+  document.getElementById("form-submit-btn").textContent = "記録する";
+  setTodayDefaults();
+  document.getElementById("f-location").value = "";
+  document.getElementById("f-trigger").value = "";
+  document.getElementById("f-notes").value = "";
+  selectSeverity(1);
+  showForm();
+}
+
+function openEditForm(id) {
+  const ep = episodes.find(e => e.id === id);
+  if (!ep) return;
+  document.getElementById("edit-id").value = id;
+  document.getElementById("form-title").textContent = "✏️ 記録を編集";
+  document.getElementById("form-submit-btn").textContent = "更新する";
+  document.getElementById("f-date").value = ep.date;
+  document.getElementById("f-time").value = ep.time;
+  document.getElementById("f-location").value = ep.location;
+  document.getElementById("f-trigger").value = ep.trigger;
+  document.getElementById("f-notes").value = ep.notes;
+  selectSeverity(ep.severity);
+  showForm();
+}
+
+function showForm() {
+  document.getElementById("monthly-view").style.display = "none";
+  document.getElementById("list-view").style.display = "none";
+  document.getElementById("form-view").classList.add("open");
+  window.scrollTo(0, 0);
+}
+
+function closeForm() {
+  document.getElementById("form-view").classList.remove("open");
+  document.getElementById("monthly-view").style.display = currentTab === "monthly" ? "" : "none";
+  document.getElementById("list-view").style.display = currentTab === "list" ? "" : "none";
+}
+
+function submitForm() {
+  const id = document.getElementById("edit-id").value;
+  const ep = {
+    id: id || String(Date.now()),
+    date: document.getElementById("f-date").value,
+    time: document.getElementById("f-time").value,
+    location: document.getElementById("f-location").value.trim(),
+    trigger: document.getElementById("f-trigger").value.trim(),
+    notes: document.getElementById("f-notes").value.trim(),
+    severity: currentSeverity,
+  };
+  if (!ep.date) { alert("日付を入力してください"); return; }
+
+  if (id) {
+    episodes = episodes.map(e => e.id === id ? ep : e);
+  } else {
+    episodes.push(ep);
+  }
+  episodes.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  save();
+  closeForm();
+  render();
+}
+
+// ── Delete ─────────────────────────────────────────────────
+function confirmDelete(id) {
+  pendingDeleteId = id;
+  document.getElementById("confirm-overlay").classList.add("open");
+}
+
+function closeConfirm() {
+  pendingDeleteId = null;
+  document.getElementById("confirm-overlay").classList.remove("open");
+}
+
+function doDelete() {
+  if (!pendingDeleteId) return;
+  episodes = episodes.filter(e => e.id !== pendingDeleteId);
+  save();
+  closeConfirm();
+  render();
+}
+
+// ── Start ──────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
